@@ -64,8 +64,8 @@ func HandleRegister(db *sql.DB) http.HandlerFunc {
 
 		// готовим вставку в SQL
 		query := `
-    INSERT INTO users (username, email, password, created_at, updated_at) 
-    VALUES (?, ?, ?, NOW(), NOW())
+    INSERT INTO users (username, email, password, created_at, updated_at, location) 
+    VALUES (?, ?, ?, NOW(), NOW(), "")
 `
 
 		result, err := db.Exec(query, req.Username, req.Email, string(hashPass))
@@ -190,6 +190,12 @@ func HandlerLogin(db *sql.DB) http.HandlerFunc {
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		tokenString, err := token.SignedString(jwtSecret)
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  "auth_token",
+			Value: tokenString,
+			Path:  "/",
+		})
 
 		if err != nil {
 			log.Printf(" Ошибка генерации токена: %v", err)

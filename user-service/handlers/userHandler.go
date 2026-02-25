@@ -13,19 +13,19 @@ func DashboardHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.Header.Get("X-User-ID")
 		email := r.Header.Get("X-User-Email")
-		userName := r.Header.Get("X-User-Username")
 
 		var (
+			username string
 			location string
 			birthday sql.NullString
 			work     string
 		)
 
 		err := db.QueryRow(`
-                SELECT COALESCE(location, '') as location, 
+                SELECT COALESCE(username, '') as username, COALESCE(location, '') as location, 
                    COALESCE(birthday, '') as birthday, COALESCE(work, '') as work
             FROM users WHERE id = ?`, id).
-			Scan(&location, &birthday, &work)
+			Scan(&username, &location, &birthday, &work)
 		if err != nil {
 			http.Error(w, "пользователь не найден", http.StatusNotFound)
 			return
@@ -33,7 +33,7 @@ func DashboardHandler(db *sql.DB) http.HandlerFunc {
 		response := map[string]interface{}{
 			"id":             id,
 			"email":          email,
-			"username":       userName,
+			"username":       username,
 			"location":       location,
 			"birthday":       birthday.String,
 			"work":           work,
