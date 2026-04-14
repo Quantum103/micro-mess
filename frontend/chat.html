@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Чат</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 20px auto; }
+    #messages { border: 1px solid #ccc; height: 300px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #f9f9f9; }
+    .msg { margin: 4px 0; padding: 6px 10px; border-radius: 4px; }
+    .msg.mine { background: #dcf8c6; text-align: right; }
+    .msg.other { background: #fff; border: 1px solid #eee; }
+    form { display: flex; gap: 5px; }
+    input { flex: 1; padding: 8px; }
+    button { padding: 8px 12px; }
+  </style>
+</head>
+<body>
+  <h2>Чат</h2>
+  <div id="messages"></div>
+  <form id="chat-form">
+    <input type="text" id="partner-id" placeholder="ID собеседника" required>
+    <input type="text" id="msg-input" placeholder="Сообщение..." required>
+    <button type="submit">Отправить</button>
+  </form>
+
+<script>
+  // =========================
+  // 1. ПРОВЕРКА АВТОРИЗАЦИИ
+  // =========================
+const token = localStorage.getItem("auth_token");
+if (!token || token === "undefined") {
+    console.warn("Нет валидного токена");
+    window.location.href = "/login.html";
+}
+
+  if (!token) {
+    console.warn("Нет токена — редирект на login");
+    window.location.href = "/login.html";
+  }
+
+  const myUserId = localStorage.getItem('user_id') || prompt('Введи свой UserID:');
+  localStorage.setItem('user_id', myUserId);
+
+  const messagesDiv = document.getElementById('messages');
+  const chatForm = document.getElementById('chat-form');
+  const partnerInput = document.getElementById('partner-id');
+  const msgInput = document.getElementById('msg-input');
+
+  // =========================
+  // 2. СОЗДАЁМ WS ОДИН РАЗ
+  // =========================
+  const ws = new WebSocket(`ws://${location.host}/ws?token=${token}`);
+
+  ws.onopen = () => console.log('WS connected');
+
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    appendMessage(msg.content, msg.from === myUserId);
+  };
+
+  ws.onclose = () => console.log('WS disconnected');
+
+  ws.onerror = (err) => {
+    console.error("WS error:", err);
+  };
+
+  // =========================
+  // 3. ОТПРАВКА СООБЩЕНИЙ
+  // =========================
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const to = partnerInput.value.trim();
+    const content = msgInput.value.trim();
+
+    if (!to || !content) return;
+
+    ws.send(JSON.stringify({
+      to,
+      content,
+      type: 'text'
+    }));
+
+    msgInput.value = '';
+  });
+
+  // =========================
+  // 4. UI
+  // =========================
+  function appendMessage(text, isMine) {
+    const div = document.createElement('div');
+    div.className = `msg ${isMine ? 'mine' : 'other'}`;
+    div.textContent = text;
+
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }
+</script>
+</body>
+</html>

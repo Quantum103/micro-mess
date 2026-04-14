@@ -1,0 +1,340 @@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --mountain: #6D819A;      /* основной цвет гор */
+            --dark: #2E3338;          /* темный фон */
+            --warm: #8A5E3C;          /* теплый акцент (дерево, камин) */
+            --frost: rgba(255, 255, 255, 0.08);
+            --snow: rgba(255, 255, 255, 0.03);
+            --glow: rgba(109, 129, 154, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(165deg, #1a1e22, var(--dark));
+            color: #e0e6ed;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Снежная пыль */
+        .snow-dust {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+            opacity: 0.6;
+        }
+
+        .snow-particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: drift linear infinite;
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(100vh) translateX(calc(var(--offset) * 10px)); opacity: 0; }
+        }
+
+        /* Горы */
+        .mountain-range {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50vh;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .peak {
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 180px solid transparent;
+            border-right: 180px solid transparent;
+            filter: blur(1px);
+        }
+
+        .peak-1 {
+            left: 10%;
+            border-bottom: 450px solid var(--mountain);
+            opacity: 0.85;
+            transform: translateX(-50px);
+            animation: float-mountain 18s ease-in-out infinite;
+        }
+
+        .peak-2 {
+            left: 40%;
+            border-bottom: 600px solid var(--mountain);
+            opacity: 0.95;
+            animation: float-mountain 22s ease-in-out infinite;
+            animation-delay: -5s;
+        }
+
+        .peak-3 {
+            left: 75%;
+            border-bottom: 500px solid var(--mountain);
+            opacity: 0.8;
+            transform: translateX(30px);
+            animation: float-mountain 20s ease-in-out infinite;
+            animation-delay: -10s;
+        }
+
+        .snow-cap {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 35%;
+            background: rgba(255, 255, 255, 0.15);
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+        }
+
+        @keyframes float-mountain {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(var(--drift, 0)) translateY(-15px); }
+        }
+
+        /* Форма регистрации */
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            background: rgba(35, 39, 43, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.5),
+                0 0 30px var(--glow);
+            border: 1px solid rgba(109, 129, 154, 0.15);
+            position: relative;
+            z-index: 10;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        .auth-header::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--warm), transparent);
+            border-radius: 3px;
+        }
+
+        .logo-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--mountain), #a0b4c8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #e0e6ed, #a0b4c8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-subtitle {
+            color: var(--mountain);
+            margin-top: 8px;
+            font-size: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #a0b4c8;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--frost);
+            border: 1px solid rgba(109, 129, 154, 0.2);
+            border-radius: 16px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-control:focus {
+            border-color: var(--mountain);
+            background: rgba(109, 129, 154, 0.1);
+            box-shadow: 0 0 0 3px rgba(109, 129, 154, 0.15);
+        }
+
+        .form-control::placeholder {
+            color: rgba(224, 230, 237, 0.4);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--mountain), #5a6b82);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(109, 129, 154, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .submit-btn:hover::after {
+            left: 100%;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+            color: var(--mountain);
+        }
+
+        .form-footer a {
+            color: var(--warm);
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .form-footer a:hover {
+            opacity: 0.85;
+        }
+
+        /* Анимация снежинок на кнопке */
+        .snowflake {
+            display: inline-block;
+            margin-right: 6px;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Туман у подножия гор */
+        .mist {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+            z-index: -1;
+            animation: drift-mist 25s linear infinite;
+        }
+
+        @keyframes drift-mist {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        /* Анимация появления гор */
+        @keyframes mountain-rise {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .peak {
+            animation-name: mountain-rise;
+            animation-duration: 1.2s;
+            animation-fill-mode: forwards;
+        }
+
+        .peak-1 { animation-delay: 0.2s; }
+        .peak-2 { animation-delay: 0.4s; }
+        .peak-3 { animation-delay: 0.6s; }
+
+        /* Мобильная адаптация */
+        @media (max-width: 480px) {
+            .auth-container {
+                padding: 30px 25px;
+                margin: 15px;
+            }
+            
+            .auth-title {
+                font-size: 24px;
+            }
+            
+            .mountain-range {
+                height: 40vh;
+            }
+            
+            .peak {
+                border-left: 120px solid transparent;
+                border-right: 120px solid transparent;
+            }
+            
+            .peak-2 {
+                border-bottom: 450px solid var(--mountain);
+            }
+        }

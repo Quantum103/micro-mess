@@ -1,0 +1,26 @@
+# Go
+/vendor/
+*.exe
+*.test
+/go.sum
+
+# Node
+/node_modules/
+/dist/
+/build/
+npm-debug.log
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

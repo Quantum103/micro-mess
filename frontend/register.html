@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine • Зимний мессенджер</title>
+    <link rel="stylesheet" href="static/css/register.css">   
+
+</head>
+<body>
+    <div class="snow-dust" id="snowDust"></div>
+    
+    <div class="mountain-range">
+        <div class="peak peak-1">
+            <div class="snow-cap"></div>
+        </div>
+        <div class="peak peak-2">
+            <div class="snow-cap"></div>
+        </div>
+        <div class="peak peak-3">
+            <div class="snow-cap"></div>
+        </div>
+    </div>
+    
+    <div class="mist"></div>
+
+    <div class="auth-container">
+        <div class="auth-header">
+            <div class="logo-icon">🏔️</div>
+            <h1 class="auth-title">Alpine Messenger</h1>
+            <p class="auth-subtitle">Зимние вершины общения</p>
+        </div>
+        
+        <form id="registerForm" method="post" >
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="form-control" placeholder="email@example.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••" required minlength="8">
+            </div>
+            
+            <div class="form-group">
+                <label for="username">Логин</label>
+                <input type="text" id="username" class="form-control" placeholder="ваш_логин" required>
+            </div>
+            
+            <button type="submit" class="submit-btn">
+                <span class="snowflake">❄</span> Создать аккаунт
+            </button>
+        </form>
+        
+        <div class="form-footer">
+            Уже есть аккаунт? <a href="#">Войти</a>
+        </div>
+    </div>
+
+<script src="static/js/register.js"> </script>
+</body>
+</html>
