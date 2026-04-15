@@ -117,12 +117,6 @@
                 body: JSON.stringify(formData)
             });
 
-<<<<<<< HEAD
-=======
-            console.log(' Ответ от сервера - статус:', response.status);
-            console.log('📥Ответ от сервера - headers:', Object.fromEntries(response.headers.entries()));
-
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Текст ошибки от сервера:', errorText);
@@ -132,10 +126,6 @@
                     const errorData = JSON.parse(errorText);
                     errorMessage = errorData.message || errorMessage;
                 } catch (e) {
-<<<<<<< HEAD
-=======
-                    // Если не JSON, используем текст как есть
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
                     errorMessage = errorText || errorMessage;
                 }
                 
@@ -149,7 +139,6 @@
             if (result.token) {
                 console.log(' Токен получен, сохраняем в localStorage');
                 localStorage.setItem('auth_token', result.token);
-<<<<<<< HEAD
                 if (result.token && result.token !== "undefined") {
                     localStorage.setItem("token", result.token);
                 } else {
@@ -157,8 +146,6 @@
                 }                
                 localStorage.setItem('user_id', result.user_id);                
                 console.log('Сохранён user_id:', result.user_id);   // ← Для отладки
-=======
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
                 
                 btn.innerHTML = 'Успешно!';
                 
@@ -188,11 +175,7 @@
     // ИНИЦИАЛИЗАЦИЯ
     // ========================================
     window.onload = () => {
-<<<<<<< HEAD
         console.log('Страница загружена');
-=======
-        console.log('🏠 Страница загружена');
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
         createSnowflakes();
         
         // Enter для отправки формы

@@ -1,48 +1,25 @@
 services:
-<<<<<<< HEAD
-=======
-  # БД
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
   mysql:
     image: mysql:8.0
     container_name: micro-mess-mysql
     environment:
-<<<<<<< HEAD
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-=======
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes  
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
       - MYSQL_DATABASE=micro
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-<<<<<<< HEAD
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - microservices-net
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-
-=======
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
-
-    networks:
-      - microservices-net
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      test: ["CMD", "mysql", "-e", "SELECT 1"]
+      interval: 15s
+      timeout: 15s
+      retries: 20
       start_period: 120s
     restart: unless-stopped
- 
-  # AUTH-SERVICE
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
+
   auth-service:
     build:
       context: ./auth-service
@@ -51,29 +28,17 @@ services:
     ports:
       - "8081:8081"
     environment:
-<<<<<<< HEAD
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=
       - DB_NAME=micro
-=======
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
     depends_on:
       mysql:
         condition: service_healthy
     networks:
       - microservices-net
 
-<<<<<<< HEAD
-=======
-  # USER-SERVICE 
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
   user-service:
     build:
       context: ./user-service
@@ -82,26 +47,17 @@ services:
     ports:
       - "8082:8082"
     environment:
-<<<<<<< HEAD
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=
       - DB_NAME=micro
-=======
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
     depends_on:
       mysql:
         condition: service_healthy
     networks:
       - microservices-net
 
-<<<<<<< HEAD
   chat-service:
     build:
       context: ./chat-service
@@ -125,9 +81,6 @@ services:
     networks:
       - microservices-net
 
-=======
-      ## GATEWAY
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
   api-gateway:
     build:
       context: ./api-gateway
@@ -136,18 +89,11 @@ services:
     ports:
       - "8080:8080"
     volumes:
-<<<<<<< HEAD
       - ./frontend:/app/frontend:ro
     depends_on:
       - auth-service
       - user-service
       - chat-service  # ← ДОБАВЛЕНО
-=======
-    - ./frontend:/app/frontend  
-    depends_on:
-      - auth-service
-      - user-service
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
     networks:
       - microservices-net
 
@@ -168,9 +114,5 @@ networks:
     driver: bridge
 
 volumes:
-<<<<<<< HEAD
   mysql-data:
   go-mod-cache:
-=======
-  mysql-data:
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56

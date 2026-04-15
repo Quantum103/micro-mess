@@ -39,11 +39,7 @@
     }
 
     // отправка формы в микросервис
-<<<<<<< HEAD
 async function registerUser(formData) {
-=======
-   async function registerUser(formData) {
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
     try {
         const response = await fetch('/api/register', {
             method: 'POST',
@@ -58,7 +54,6 @@ async function registerUser(formData) {
             throw new Error(errorData.message || `Ошибка ${response.status}: ${response.statusText}`);
         }
 
-<<<<<<< HEAD
         const result = await response.json();  // ← Убрали return
         
         // Сохраняем в localStorage (теперь выполнится!)
@@ -67,15 +62,11 @@ async function registerUser(formData) {
         
         return result;  // ← return в конце
 
-=======
-        return await response.json();
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
     } catch (error) {
         throw error;
     }
 }
 
-<<<<<<< HEAD
 // Использование при отправке формы
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -95,8 +86,6 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     }
 });
 
-=======
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 // Обработка отправки формы
 document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();

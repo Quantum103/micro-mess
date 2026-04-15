@@ -26,17 +26,10 @@ func getPost(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	LIMIT 50`)
 	if err != nil {
 		log.Printf("ошибка в БД: %v", err)
-<<<<<<< HEAD
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "database error"})
 		return
-=======
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusInternalServerError)
-        json.NewEncoder(w).Encode(map[string]string{"error": "database error"})
-        return
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 	}
 
 	defer row.Close()

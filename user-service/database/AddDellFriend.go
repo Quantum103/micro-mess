@@ -155,7 +155,6 @@ func (userRepo *UserRepository) AddFriend(ctx context.Context, userID, friendID 
 		return fmt.Errorf("уже есть связь")
 	}
 
-	// ✅ ВАЖНО: создаём новую заявку
 	_, err = userRepo.db.ExecContext(ctx, `
 		INSERT INTO friends (user_id, friend_id, status)
 		VALUES (?, ?, 'pending')

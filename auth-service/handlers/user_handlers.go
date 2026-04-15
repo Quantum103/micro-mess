@@ -32,20 +32,11 @@ type UserResponse struct {
 
 func HandleRegister(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-<<<<<<< HEAD
-=======
-		log.Printf("Получен запрос: метод=%s, URL=%s", r.Method, r.URL.Path)
-
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		if r.Method != http.MethodPost {
 			http.Error(w, "Вход не разрешён", http.StatusMethodNotAllowed)
 			return
 		}
 
-<<<<<<< HEAD
-=======
-		// ограничение по памяти 1МБ
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		r.Body = http.MaxBytesReader(w, r.Body, 1048576)
 
 		var req RegisterRequest
@@ -68,10 +59,6 @@ func HandleRegister(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-<<<<<<< HEAD
-=======
-		// готовим вставку в SQL
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		query := `
     INSERT INTO users (username, email, password, created_at, updated_at, location) 
     VALUES (?, ?, ?, NOW(), NOW(), "")
@@ -88,10 +75,6 @@ func HandleRegister(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "Ошибка сохранения пользователя", http.StatusInternalServerError)
 			return
 		}
-<<<<<<< HEAD
-=======
-		// получ последнего ID
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		userID, err := result.LastInsertId()
 		if err != nil {
 			http.Error(w, "Ошибка получения ID ", http.StatusInternalServerError)
@@ -121,25 +104,14 @@ type UserLogin struct {
 func HandlerLogin(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-<<<<<<< HEAD
-=======
-		// Проверка метода
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		if r.Method != http.MethodPost {
 			log.Println(" Неправильный метод запроса")
 			http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
 			return
 		}
 
-<<<<<<< HEAD
 		r.Body = http.MaxBytesReader(w, r.Body, 1048576)
 
-=======
-		// Ограничение размера тела
-		r.Body = http.MaxBytesReader(w, r.Body, 1048576)
-
-		// Чтение всего тела запроса для отладки
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Printf(" Ошибка чтения тела запроса: %v", err)
@@ -149,10 +121,6 @@ func HandlerLogin(db *sql.DB) http.HandlerFunc {
 
 		log.Printf("Тело запроса: %s", string(body))
 
-<<<<<<< HEAD
-=======
-		// Парсим JSON
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		var req UserLogin
 		if err := json.Unmarshal(body, &req); err != nil {
 			log.Printf(" Ошибка парсинга JSON: %v", err)
@@ -160,10 +128,6 @@ func HandlerLogin(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-<<<<<<< HEAD
-=======
-		// Валидация
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		if req.Identifier == "" || req.Password == "" || len(req.Password) < 4 {
 			log.Println(" Ошибка валидации: пустые поля или короткий пароль")
 			http.Error(w, "Введите корректные данные", http.StatusBadRequest)
@@ -175,10 +139,6 @@ func HandlerLogin(db *sql.DB) http.HandlerFunc {
 		var storPassHash string
 		var realUsername string
 
-<<<<<<< HEAD
-=======
-		// Ищем пользователя в БД
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		err = db.QueryRow(`
     SELECT id, email, username, password 
     FROM users 
@@ -197,11 +157,6 @@ func HandlerLogin(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-<<<<<<< HEAD
-=======
-		log.Printf(" Пользователь найден: id=%d", userId)
-
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		// Проверяем пароль
 		if err := bcrypt.CompareHashAndPassword([]byte(storPassHash), []byte(req.Password)); err != nil {
 			log.Printf(" Пароли не совпадают: %v", err)
@@ -209,11 +164,6 @@ func HandlerLogin(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-<<<<<<< HEAD
-=======
-		log.Println("Пароль верный")
-
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 		// Генерируем токен
 		claims := jwt.MapClaims{
 			"user_id":  userId,
@@ -238,18 +188,8 @@ func HandlerLogin(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-<<<<<<< HEAD
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
 
-=======
-		log.Println(" Токен сгенерирован успешно")
-
-		// Возвращаем токен
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"token": tokenString})
-
-		log.Println("Ответ отправлен клиенту")
->>>>>>> 504fd3e5a511bf68e5f35cecc92e257c0bb17d56
 	}
 }
