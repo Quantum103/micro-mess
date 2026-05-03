@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"context"
+	"chat-service/handlers/chat"
 	"database/sql"
 	"encoding/json"
 	"net/http"
-	"time"
 )
 
 type User struct {
@@ -14,29 +13,53 @@ type User struct {
 	Online   bool   `json:"online"`
 }
 
-func GetUsersHandler(db *sql.DB, hub interface{ IsOnline(string) bool }) http.HandlerFunc {
+func GetFriendsHandler(db *sql.DB, hub *chat.Hub) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-		defer cancel()
+		userID := r.Header.Get("X-User-ID")
+		if userID == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
-		rows, err := db.QueryContext(ctx, "SELECT id, username FROM users")
+		query := `
+		SELECT u.id, u.username
+		FROM users u
+		JOIN friends f 
+			ON (f.friend_id = u.id OR f.user_id = u.id)
+		WHERE 
+			(f.user_id = ? OR f.friend_id = ?)
+			AND f.status = 'accepted'
+			AND u.id != ?
+		`
+
+		rows, err := db.Query(query, userID, userID, userID)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), 500)
 			return
 		}
 		defer rows.Close()
 
 		var users []User
+
 		for rows.Next() {
 			var u User
+
 			if err := rows.Scan(&u.ID, &u.Username); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, err.Error(), 500)
 				return
 			}
-			if hub != nil {
-				u.Online = hub.IsOnline(u.ID)
-			}
+
+			u.Online = hub.IsOnline(u.ID)
 			users = append(users, u)
+		}
+
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		if users == nil {
+			users = []User{}
 		}
 
 		w.Header().Set("Content-Type", "application/json")

@@ -31,12 +31,14 @@ func main() {
 		chat.ServeWS(hub, w, r)
 	})
 
-	r.HandleFunc("/api/users", handlers.GetUsersHandler(db.DB, hub)).Methods("GET")
+	r.HandleFunc("/api/users", handlers.GetFriendsHandler(db.DB, hub)).Methods("GET")
 
 	// Получить историю сообщений между двумя пользователями
 	r.HandleFunc("/api/history", func(w http.ResponseWriter, r *http.Request) {
-		userID := r.URL.Query().Get("user_id")
+
 		partnerID := r.URL.Query().Get("partner_id")
+		userID := r.Header.Get("X-User-ID")
+
 		if userID == "" || partnerID == "" {
 			http.Error(w, "Missing IDs", http.StatusBadRequest)
 			return

@@ -66,7 +66,7 @@ func (h *Hub) Run() {
 				}
 			}
 
-			// Отправляем отправителю (подтверждение/эхо)
+			// Отправляем отправителю
 			if sender, ok := h.clients[msg.From]; ok {
 				select {
 				case sender.send <- msg:

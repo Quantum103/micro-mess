@@ -151,7 +151,7 @@
                 
                 setTimeout(() => {
                     console.log('Редирект на dashboard');
-                    window.location.href = '/dashboard.html';
+                    window.location.href = '/dashboard';
                 }, 1000);
             } else {
                 throw new Error('Сервер не вернул токен');

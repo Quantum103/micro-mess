@@ -23,7 +23,7 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // В продакшене ограничьте домены!
+		return true
 	},
 }
 
@@ -62,7 +62,6 @@ func (c *Client) readPump() {
 			continue
 		}
 
-		// Валидация
 		if msg.To == "" {
 			log.Println("Missing recipient (To)")
 			continue
@@ -117,17 +116,18 @@ func (c *Client) writePump() {
 }
 
 func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
-	log.Println("🔥 WS HANDLER HIT")
-	// Gateway прокидывает user_id из JWT в заголовке
+
 	userID := r.Header.Get("X-User-ID")
+	log.Println("user_id =", userID)
+
 	if userID == "" {
-		http.Error(w, "Missing X-User-ID", http.StatusBadRequest)
+		http.Error(w, "Missing user_id", http.StatusBadRequest)
 		return
 	}
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("Upgrade error:", err)
+		log.Println(" Upgrade error:", err)
 		return
 	}
 
@@ -140,7 +140,6 @@ func ServeWS(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	client.hub.register <- client
 
-	// Запускаем горутины
 	go client.writePump()
 	go client.readPump()
 }

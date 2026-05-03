@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('auth_token');
     
     if (!token) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
         return;
     }
     
@@ -10,37 +10,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadProfileData();
     await loadPosts();
 });    // Загрузка профиля
-    async function loadProfileData() {
-        const token = localStorage.getItem('auth_token');
-        
-        try {
-            const response = await fetch('/dashboard', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+async function loadProfileData() {
+    const token = localStorage.getItem('auth_token');
+    
+    try {
+        const response = await fetch('/api/dashboard', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
 
-            if (response.status === 401) {
-                window.location.href = '/login.html';
-                return;
-            }
-
-            const data = await response.json();
-            
-            document.getElementById('profileName').textContent = data.username || 'Гость';
-            document.getElementById('profileStatus').textContent = data.email || '';
-            document.getElementById('profileAvatar').textContent = 
-                (data.username || 'A').charAt(0).toUpperCase();
-            
-            if (data.location) document.getElementById('location').textContent = data.location;
-            if (data.birthday) document.getElementById('birthday').textContent = data.birthday;
-            if (data.work) document.getElementById('work').textContent = data.work;
-
-        } catch (error) {
-            console.error('Ошибка сети:', error);
+        if (response.status === 401) { 
+            window.location.href = '/login'; 
+            return; 
         }
-    }
+        if (!response.ok) throw new Error(`Ошибка ${response.status}`);
 
+        const data = await response.json();
+        
+        const fields = [
+            { id: 'profileName', key: 'username', fallback: 'Гость' },
+            { id: 'profileStatus', key: 'email', fallback: '' },
+            { id: 'profileAvatar', key: 'username', fallback: 'A', transform: (v) => (v || 'A').charAt(0).toUpperCase() },
+            { id: 'location', key: 'location', fallback: '—' },
+            { id: 'work', key: 'work', fallback: '—' },
+            { id: 'birthday', key: 'weather', fallback: '—', transform: (v) => v?.temp ? `${v.temp.toFixed(1)}°C ${v.condition||''}` : '—' },
+            { id: 'friendsCount', key: 'friendsCount', fallback: 0 },
+            { id: 'postsCount', key: 'postsCount', fallback: 0 },
+            { id: 'followersCount', key: 'followersCount', fallback: 0 },
+        ];
+
+        fields.forEach(({ id, key, fallback, transform }) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            
+            let value = data[key];
+            if (transform) {
+                value = transform(value);
+            } else if (value === undefined || value === null) {
+                value = fallback;
+            }
+            
+            el.textContent = value;
+        });
+
+    } catch (error) {
+        // Обработка ошибки
+    }
+}
     // Создание поста
     document.getElementById('createPost').addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -62,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (response.status === 401) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 return;
             }
 
@@ -98,7 +113,7 @@ async function loadPosts() {
         const posts = JSON.parse(rawText);
         
         if (response.status === 401) {
-            window.location.href = '/login.html';
+            window.location.href = '/login';
             return;
         }
 

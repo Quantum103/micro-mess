@@ -22,6 +22,7 @@ func main() {
 	r := mux.NewRouter()
 	// Get запрос - userHandler.go
 	r.HandleFunc("/dashboard", handlers.DashboardHandler(db))
+	r.HandleFunc("/api/dashboard", handlers.DashboardHandler(db))
 
 	// POST запрос - postHandler.go
 	r.HandleFunc("/api/posts", handlers.PostHandler(db))
@@ -33,10 +34,12 @@ func main() {
 	r.HandleFunc("/change/Pass", handlers.UpdatePassword(userRepo))
 
 	// маршруты для друзей
-	r.HandleFunc("/people", handlers.ListUserHandler(userRepo)).Methods("GET")
-	r.HandleFunc("/friends", handlers.GetFrineds(userRepo)).Methods("GET")
-	r.HandleFunc("/friends", handlers.AddFriendHandler(userRepo)).Methods("POST")
-	r.HandleFunc("/friends/accept", handlers.AcceptFriendHandler(userRepo)).Methods("POST")
+	r.HandleFunc("/people", handlers.ListUserHandler(userRepo))
+	r.HandleFunc("/api/people", handlers.ListUserHandler(userRepo))
+
+	r.HandleFunc("/api/friends", handlers.GetFrineds(userRepo)).Methods("GET")
+	r.HandleFunc("/api/friends", handlers.AddFriendHandler(userRepo)).Methods("POST")
+	r.HandleFunc("/api/friends/accept", handlers.AcceptFriendHandler(userRepo)).Methods("POST")
 
 	log.Println("User Service запущен на порту 8082")
 	http.ListenAndServe(":8082", r)

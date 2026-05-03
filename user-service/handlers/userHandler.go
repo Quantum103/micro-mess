@@ -1,29 +1,30 @@
 package handlers
 
 import (
-    "database/sql"
-    "encoding/json"
-    "log"
-    "net/http"
-    "strconv"
+	"database/sql"
+	"encoding/json"
+	"log"
+	"net/http"
+	"strconv"
+	"user-service/handlers/weather"
 )
 
 func DashboardHandler(db *sql.DB) http.HandlerFunc {
-    return func(w http.ResponseWriter, r *http.Request) {
-        idStr := r.Header.Get("X-User-ID")
-        userID, err := strconv.Atoi(idStr)
-        if err != nil || userID == 0 {
-            w.Header().Set("Content-Type", "application/json")
-            w.WriteHeader(http.StatusBadRequest)
-            json.NewEncoder(w).Encode(map[string]string{"error": "invalid user id"})
-            return
-        }
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.Header.Get("X-User-ID")
+		userID, err := strconv.Atoi(idStr)
+		if err != nil || userID == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "invalid user id"})
+			return
+		}
 
-        email := r.Header.Get("X-User-Email")
+		email := r.Header.Get("X-User-Email")
 
-        var username, location, birthday, work string
-        
-        err = db.QueryRow(`
+		var username, location, birthday, work string
+
+		err = db.QueryRow(`
             SELECT 
                 COALESCE(username, ''),
                 COALESCE(location, ''),
@@ -31,32 +32,44 @@ func DashboardHandler(db *sql.DB) http.HandlerFunc {
                 COALESCE(work, '')
             FROM users 
             WHERE id = ?`, userID).
-            Scan(&username, &location, &birthday, &work)
-        
-        if err != nil {
-            log.Printf("Dashboard query error: %v", err)
-            w.Header().Set("Content-Type", "application/json")
-            w.WriteHeader(http.StatusNotFound)
-            json.NewEncoder(w).Encode(map[string]string{"error": "user not found"})
-            return
-        }
+			Scan(&username, &location, &birthday, &work)
 
-        // 3. Формируем JSON-ответ
-        response := map[string]interface{}{
-            "id":             userID,
-            "email":          email,
-            "username":       username,
-            "location":       location,
-            "birthday":       birthday,  
-            "work":           work,
-            "friendsCount":   0,
-            "postsCount":     0,
-            "followersCount": 0,
-        }
+		if err != nil {
+			log.Printf("Dashboard query error: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "user not found"})
+			return
+		}
 
-        w.Header().Set("Content-Type", "application/json")
-        if encErr := json.NewEncoder(w).Encode(response); encErr != nil {
-            log.Printf(" JSON encode error: %v", encErr)
-        }
-    }
+		// погода
+
+		var WeatherData *weather.WeatherData
+		if location != "" {
+			w, err := weather.GetWeather(location)
+			if err != nil {
+				log.Printf("ошибка: %v", err)
+			} else {
+				WeatherData = w
+			}
+		}
+
+		//  JSON-ответ
+		response := map[string]interface{}{
+			"id":             userID,
+			"email":          email,
+			"username":       username,
+			"location":       location,
+			"weather":        WeatherData,
+			"work":           work,
+			"friendsCount":   0,
+			"postsCount":     0,
+			"followersCount": 0,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if encErr := json.NewEncoder(w).Encode(response); encErr != nil {
+			log.Printf(" JSON encode error: %v", encErr)
+		}
+	}
 }

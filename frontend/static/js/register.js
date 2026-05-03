@@ -80,7 +80,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     try {
         await registerUser(formData);
         // После успешной регистрации — редирект на чат
-        window.location.href = '/chat.html';
+        window.location.href = '/chat';
     } catch (error) {
         alert('Ошибка регистрации: ' + error.message);
     }
@@ -122,7 +122,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         btn.innerHTML = '<span class="snowflake">✓</span> Успешно!';
         setTimeout(() => {
             alert('Аккаунт создан! Теперь вы можете войти.');
-            window.location.href = '/login.html'; 
+            window.location.href = '/login'; 
         }, 1500);
 
     } catch (error) {

@@ -1,14 +1,12 @@
 package middleware
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"time"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -17,6 +15,7 @@ var jwtSecret = []byte("my-super-secret-key-12345")
 
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+
 		tokenString := r.URL.Query().Get("token")
 
 		if tokenString == "" {
@@ -30,37 +29,31 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if tokenString == "" {
-			if r.Header.Get("Accept") == "application/json" || r.Header.Get("X-Requested-With") == "XMLHttpRequest" {
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusUnauthorized)
-				json.NewEncoder(w).Encode(map[string]string{"error": "Пользователь не авторизован"})
-				return
-			}
-			// Для обычных страниц (браузер) — редирект на логин
-			http.Redirect(w, r, "/login.html", http.StatusSeeOther)
+			http.Error(w, "не авториз", http.StatusUnauthorized)
 			return
 		}
 
-		if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
-			tokenString = tokenString[7:]
-		}
+		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 		claims := jwt.MapClaims{}
+
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtSecret, nil
 		})
 
 		if err != nil || !token.Valid {
-			http.Error(w, "Неверный или просроченный токен", http.StatusUnauthorized)
+			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
 
-		if userID, ok := claims["user_id"].(float64); ok {
-			r.Header.Set("X-User-ID", fmt.Sprintf("%.0f", userID))
+		if userID, ok := claims["user_id"]; ok {
+			r.Header.Set("X-User-ID", fmt.Sprintf("%v", userID))
 		}
+
 		if email, ok := claims["email"].(string); ok {
 			r.Header.Set("X-User-Email", email)
 		}
+
 		if username, ok := claims["username"].(string); ok {
 			r.Header.Set("X-User-Username", username)
 		}
@@ -72,38 +65,29 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 func CreateProxy(host string) *httputil.ReverseProxy {
 	targetURL, err := url.Parse("http://" + host)
 	if err != nil {
-		log.Fatalf(" Ошибка парсинга прокси %s: %v", host, err)
+		log.Fatal(err)
 	}
 
-	// Создаём прокси
 	proxy := httputil.NewSingleHostReverseProxy(targetURL)
 
-	defaultDirector := proxy.Director
+	originalDirector := proxy.Director
+
 	proxy.Director = func(req *http.Request) {
-		defaultDirector(req)
+		originalDirector(req)
+
 		req.Host = targetURL.Host
-		if req.Header.Get("Upgrade") != "" {
-			req.Header.Set("Connection", "Upgrade")
-			req.Header.Set("Upgrade", req.Header.Get("Upgrade"))
+
+		if uid := req.Header.Get("X-User-ID"); uid != "" {
+			req.Header.Set("X-User-ID", uid)
+		}
+		if email := req.Header.Get("X-User-Email"); email != "" {
+			req.Header.Set("X-User-Email", email)
 		}
 	}
 
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		log.Printf(" Ошибка прокси для %s: %v", host, err)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadGateway)
-		json.NewEncoder(w).Encode(map[string]string{"error": "service unavailable ыыы"})
-	}
-
-	proxy.Transport = &http.Transport{
-		DialContext: (&net.Dialer{
-			Timeout:   5 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).DialContext,
-		ResponseHeaderTimeout: 10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		MaxIdleConnsPerHost:   100,
-		DisableCompression:    true,
+		log.Println("proxy error:", err)
+		http.Error(w, "gateway error", 502)
 	}
 
 	return proxy
