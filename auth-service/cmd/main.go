@@ -6,6 +6,8 @@ import (
 
 	"auth-service/database"
 	"auth-service/handlers"
+	"auth-service/repository"
+	"auth-service/service"
 
 	"github.com/gorilla/mux"
 )
@@ -18,9 +20,16 @@ func main() {
 	defer db.Close()
 
 	r := mux.NewRouter()
+	// repository layer
+	userRepo := repository.NewUserRepository(db)
 
-	r.HandleFunc("/api/register", handlers.HandleRegister(db)).Methods("POST")
-	r.HandleFunc("/api/login", handlers.HandlerLogin(db)).Methods("POST")
+	// service layer
+	authService := service.NewAuthService(userRepo)
+
+	// handler layer
+	authHandler := handlers.NewAuthHandler(authService)
+	r.HandleFunc("/api/register", authHandler.Register).Methods("POST")
+	r.HandleFunc("/api/login", authHandler.Login).Methods("POST")
 
 	log.Println(" User Service запущен на порту 8081")
 	log.Fatal(http.ListenAndServe(":8081", r))
