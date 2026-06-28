@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type MockUserRepo struct{}
@@ -13,10 +14,14 @@ func (m *MockUserRepo) Create(user *models.User) (int64, error) {
 	return 1, nil
 }
 func (m *MockUserRepo) FindByIdentifier(identifier string, user *models.User) error {
+	hash, _ := bcrypt.GenerateFromPassword(
+		[]byte("12345678"),
+		bcrypt.DefaultCost,
+	)
 	user.ID = 1
 	user.Email = "test@mail.com"
 	user.Name = "test"
-	user.Password = "$2a$10$hashedpassword"
+	user.Password = string(hash)
 
 	return nil
 }
@@ -72,5 +77,50 @@ func Test_Short_pass(t *testing.T) {
 		Password: "34",
 	}
 	_, err := service.Register(req)
+	require.NoError(t, err)
+}
+
+/*
+	Test LOGIN
+*/
+
+func TestLogin_Succses(t *testing.T) {
+	service := NewAuthService(&MockUserRepo{})
+	req := &models.UserLogin{
+		Identifier: "anton@gmail.com",
+		Password:   "12345678",
+	}
+	_, err := service.Login(req)
+	require.NoError(t, err)
+}
+
+func TestLogin_DBerror(t *testing.T) {
+	service := NewAuthService(&MockUserRepo{})
+	req := &models.UserLogin{
+		Identifier: "anton@gmail.com",
+		Password:   "12345678",
+	}
+	_, err := service.Login(req)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "db")
+}
+
+func TestLogin_Empty(t *testing.T) {
+	service := NewAuthService(&MockUserRepo{})
+	req := &models.UserLogin{
+		Identifier: "",
+		Password:   "",
+	}
+	_, err := service.Login(req)
+	require.NoError(t, err)
+}
+
+func TestLogin_Short_Pass(t *testing.T) {
+	service := NewAuthService(&MockUserRepo{})
+	req := &models.UserLogin{
+		Identifier: "anton@gmail.com",
+		Password:   "12",
+	}
+	_, err := service.Login(req)
 	require.NoError(t, err)
 }

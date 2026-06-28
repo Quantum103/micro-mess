@@ -11,7 +11,11 @@ import (
 var jwtSecret = []byte("my-super-secret-key-12345")
 
 type AuthHandler struct {
-	AuthService *service.AuthService
+	AuthService AuthServiceInterface
+}
+type AuthServiceInterface interface {
+	Register(req *models.RegisterRequest) (*models.UserResponse, error)
+	Login(req *models.UserLogin) (string, error)
 }
 
 func NewAuthHandler(service *service.AuthService) *AuthHandler {

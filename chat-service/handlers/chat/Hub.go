@@ -83,3 +83,7 @@ func (h *Hub) IsOnline(userID string) bool {
 	_, ok := h.clients[userID]
 	return ok
 }
+
+func (h *Hub) AddClient(client *Client) {
+	h.clients[client.UserID] = client
+}
