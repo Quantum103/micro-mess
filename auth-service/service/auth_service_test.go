@@ -42,9 +42,6 @@ func TestRegister_Success(t *testing.T) {
 	require.Equal(t, "test@mail.com", user.Email)
 }
 
-//	func (m *MockUserRepo) Create(user *models.User) (int64, error) {
-//		return 1, errors.New("db")
-//	}
 func Test_DBerror(t *testing.T) {
 	service := NewAuthService(&MockUserRepo{})
 	req := &models.RegisterRequest{
@@ -79,10 +76,6 @@ func Test_Short_pass(t *testing.T) {
 	_, err := service.Register(req)
 	require.NoError(t, err)
 }
-
-/*
-	Test LOGIN
-*/
 
 func TestLogin_Succses(t *testing.T) {
 	service := NewAuthService(&MockUserRepo{})

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"chat-service/handlers/chat"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -12,8 +11,11 @@ type User struct {
 	Username string `json:"username"`
 	Online   bool   `json:"online"`
 }
+type OnlineChecker interface {
+	IsOnline(userID string) bool
+}
 
-func GetFriendsHandler(db *sql.DB, hub *chat.Hub) http.HandlerFunc {
+func GetFriendsHandler(db *sql.DB, hub OnlineChecker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Header.Get("X-User-ID")
 		if userID == "" {
