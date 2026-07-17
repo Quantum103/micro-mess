@@ -10,8 +10,6 @@ import (
 )
 
 func RegisterStatic(router *mux.Router) {
-	// 1. Статика (картинки, стили, скрипты)
-	// Запрос /static/css/style.css → файл /app/frontend/static/css/style.css
 	router.PathPrefix("/static/").Handler(
 		http.StripPrefix("/static/", http.FileServer(http.Dir("/app/frontend/static"))),
 	)
@@ -25,9 +23,6 @@ func RegisterStatic(router *mux.Router) {
 		http.ServeFile(w, r, "/app/frontend/index.html")
 	}).Methods("GET")
 
-	// 3. Fallback (на всякий случай)
-	// Если маршрут не найден выше, пробуем найти файл с .html
-	// Это подстраховка, основные маршруты уже прописаны в auth.go и user.go
 	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/ws" {
 			http.NotFound(w, r)

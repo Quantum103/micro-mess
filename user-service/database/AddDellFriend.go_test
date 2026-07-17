@@ -1,0 +1,225 @@
+package database
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"testing"
+
+	"github.com/DATA-DOG/go-sqlmock"
+)
+
+func TestListAllUsers(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error creating mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := &UserRepository{db: db}
+
+	t.Run("success", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"id", "username", "location", "friend_status"}).
+			AddRow(1, "alice", "Moscow", "accepted").
+			AddRow(2, "bob", "", "none")
+
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 10, 10, 10, 10, 20, 0).
+			WillReturnRows(rows)
+
+		users, err := repo.ListAllUsers(context.Background(), 10, 20, 0)
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if len(users) != 2 {
+			t.Errorf("expected 2 users, got %d", len(users))
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("unmet expectations: %s", err)
+		}
+	})
+
+	t.Run("query error", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 10, 10, 10, 10, 20, 0).
+			WillReturnError(errors.New("db error"))
+
+		_, err := repo.ListAllUsers(context.Background(), 10, 20, 0)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
+}
+
+func TestGetFrineds(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error creating mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := &UserRepository{db: db}
+
+	t.Run("success", func(t *testing.T) {
+		rows := sqlmock.NewRows([]string{"id", "username", "location", "friend_status"}).
+			AddRow(1, "alice", "Moscow", "accepted")
+
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 10, 10, 20, 0).
+			WillReturnRows(rows)
+
+		friends, err := repo.GetFrineds(context.Background(), 10, 20, 0)
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if len(friends) != 1 {
+			t.Errorf("expected 1 friend, got %d", len(friends))
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("unmet expectations: %s", err)
+		}
+	})
+
+	t.Run("query error", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 10, 10, 20, 0).
+			WillReturnError(errors.New("db error"))
+
+		_, err := repo.GetFrineds(context.Background(), 10, 20, 0)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
+}
+
+func TestAddFriend(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error creating mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := &UserRepository{db: db}
+
+	t.Run("same user", func(t *testing.T) {
+		err := repo.AddFriend(context.Background(), 10, 10)
+		if err == nil || err.Error() != "нельзя добавить себя в друзья" {
+			t.Errorf("expected 'нельзя добавить себя в друзья', got %v", err)
+		}
+	})
+
+	t.Run("accept incoming pending", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 20, 20, 10).
+			WillReturnRows(sqlmock.NewRows([]string{"user_id", "status"}).AddRow(20, "pending"))
+
+		mock.ExpectExec("UPDATE").
+			WithArgs(20, 10).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		err := repo.AddFriend(context.Background(), 10, 20)
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("unmet expectations: %s", err)
+		}
+	})
+
+	t.Run("already exists pending from self", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 20, 20, 10).
+			WillReturnRows(sqlmock.NewRows([]string{"user_id", "status"}).AddRow(10, "pending"))
+
+		err := repo.AddFriend(context.Background(), 10, 20)
+		if err == nil || err.Error() != "уже есть связь" {
+			t.Errorf("expected 'уже есть связь', got %v", err)
+		}
+	})
+
+	t.Run("already exists accepted", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 20, 20, 10).
+			WillReturnRows(sqlmock.NewRows([]string{"user_id", "status"}).AddRow(10, "accepted"))
+
+		err := repo.AddFriend(context.Background(), 10, 20)
+		if err == nil || err.Error() != "уже есть связь" {
+			t.Errorf("expected 'уже есть связь', got %v", err)
+		}
+	})
+
+	t.Run("insert new pending", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 20, 20, 10).
+			WillReturnError(sql.ErrNoRows)
+
+		mock.ExpectExec("INSERT").
+			WithArgs(10, 20).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		err := repo.AddFriend(context.Background(), 10, 20)
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("unmet expectations: %s", err)
+		}
+	})
+
+	t.Run("query error", func(t *testing.T) {
+		mock.ExpectQuery("SELECT").
+			WithArgs(10, 20, 20, 10).
+			WillReturnError(errors.New("db error"))
+
+		err := repo.AddFriend(context.Background(), 10, 20)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
+}
+
+func TestAcceptFriend(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error creating mock: %s", err)
+	}
+	defer db.Close()
+
+	repo := &UserRepository{db: db}
+
+	t.Run("success", func(t *testing.T) {
+		mock.ExpectExec("UPDATE").
+			WithArgs(20, 10).
+			WillReturnResult(sqlmock.NewResult(1, 1))
+
+		err := repo.AcceptFriend(context.Background(), 10, 20)
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("unmet expectations: %s", err)
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		mock.ExpectExec("UPDATE").
+			WithArgs(20, 10).
+			WillReturnResult(sqlmock.NewResult(1, 0))
+
+		err := repo.AcceptFriend(context.Background(), 10, 20)
+		if err == nil || err.Error() != "заявка не найдена" {
+			t.Errorf("expected 'заявка не найдена', got %v", err)
+		}
+	})
+
+	t.Run("exec error", func(t *testing.T) {
+		mock.ExpectExec("UPDATE").
+			WithArgs(20, 10).
+			WillReturnError(errors.New("db error"))
+
+		err := repo.AcceptFriend(context.Background(), 10, 20)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+	})
+}
